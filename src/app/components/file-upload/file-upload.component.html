@@ -1,0 +1,79 @@
+<div class="row">
+  <form [formGroup]="form" class="col">
+    <div class="form-group">
+      <label for="name">File Name</label>
+      <input type="text" class="form-control" id="name" placeholder="3d-model" formControlName="name">
+    </div>
+    <div class="form-group">
+      <label for="file-to-upload">File to upload</label>
+      <input type="file" id="file-to-upload" (change)="onFileChange($event)" #fileInput class="form-control-file">
+      <!-- <button type="button" class="btn btn-sm btn-link" (click)="clearFile()">clear file</button> -->
+    </div>
+    <!-- <p>
+      <i class="fa fa-spinner fa-spin fa-fw text-mute" *ngIf="loading"></i>
+      <i class="fa fa-check fa-fw text-success" *ngIf="formFilled && !loading"></i>
+    </p> -->
+    <!-- <button type="submit" [disabled]="form.invalid || loading" class="btn btn-success">Submit <i class="fa fa-spinner fa-spin fa-fw" *ngIf="loading"></i></button> -->
+  </form>
+</div>
+
+<table *ngIf="file" class="table mt-3">
+  <thead>
+    <tr>
+      <th>
+        Key
+      </th>
+      <th>
+        Value
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngIf="name">
+      <td>
+        Name
+      </td>
+      <td>
+        {{name}}
+      </td>
+    </tr>
+    <tr *ngIf="size">
+      <td>
+        Size
+      </td>
+      <td>
+        {{size | fileSize}} ({{size}}B)
+      </td>
+    </tr>
+    <tr *ngIf="id">
+      <td>
+        ID
+      </td>
+      <td>
+        {{id}}
+      </td>
+    </tr>
+    <tr *ngFor="let chunk of chunks">
+      <td>
+        chunk {{chunk.chunk}}
+      </td>
+      <td>
+        {{chunk.status | fileSize}} / {{chunk.blob.size | fileSize}}
+        <i class="fa fa-check text-success" *ngIf="chunk.done"></i>
+      </td>
+    </tr>
+    <tr *ngIf="chunks">
+      <td>
+        upload
+      </td>
+      <td *ngIf="!isUploaded">
+        running
+        <i class="fa fa-spinner fa-spin text-warning"></i>
+      </td>
+      <td *ngIf="isUploaded">
+        completed
+        <i class="fa fa-check text-success"></i>
+      </td>
+    </tr>
+  </tbody>
+</table>
