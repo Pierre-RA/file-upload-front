@@ -45,15 +45,28 @@
         {{size | fileSize}} ({{size}}B)
       </td>
     </tr>
-    <tr *ngIf="id">
+    <tr *ngIf="completion">
       <td>
         ID
       </td>
       <td>
-        {{id}}
+        {{completion.id}}
+        <i class="fa fa-spinner fa-spin" *ngIf="completion.status === 'started'"></i>
+        <i class="fa fa-check text-success" *ngIf="completion.status === 'ended'"></i>
+        <i class="fa fa-times text-danger" *ngIf="completion.status === 'failed'"></i>
       </td>
     </tr>
-    <tr *ngFor="let chunk of chunks">
+    <tr *ngFor="let progress of progressList">
+      <td>
+        chunk {{progress.position}}
+      </td>
+      <td>
+        <span *ngIf="progress.loaded">{{progress.loaded | fileSize}} / {{progress.total | fileSize}}</span>
+        <i class="fa fa-spinner fa-spin" *ngIf="progress.status === 'upload'"></i>
+        <i class="fa fa-check text-success" *ngIf="progress.status === 'uploaded'"></i>
+      </td>
+    </tr>
+    <!-- <tr *ngFor="let chunk of chunks">
       <td>
         chunk {{chunk.chunk}}
       </td>
@@ -71,9 +84,10 @@
         <i class="fa fa-spinner fa-spin text-warning"></i>
       </td>
       <td *ngIf="isUploaded">
-        completed
-        <i class="fa fa-check text-success"></i>
+        {{message}}
+        <i class="fa fa-check text-success" *ngIf="!isError"></i>
+        <i class="fa fa-times text-danger" *ngIf="isError"></i>
       </td>
-    </tr>
+    </tr> -->
   </tbody>
 </table>
