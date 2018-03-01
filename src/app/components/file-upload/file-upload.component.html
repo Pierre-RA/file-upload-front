@@ -62,32 +62,10 @@
       </td>
       <td>
         <span *ngIf="progress.loaded">{{progress.loaded | fileSize}} / {{progress.total | fileSize}}</span>
-        <i class="fa fa-spinner fa-spin" *ngIf="progress.status === 'upload'"></i>
-        <i class="fa fa-check text-success" *ngIf="progress.status === 'uploaded'"></i>
+        <i class="fa fa-spinner fa-spin" *ngIf="progress.status === 'running'"></i>
+        <i class="fa fa-check text-success" *ngIf="progress.status === 'ended'"></i>
+        <i class="fa fa-times text-danger" *ngIf="progress.status === 'failed'"></i>
       </td>
     </tr>
-    <!-- <tr *ngFor="let chunk of chunks">
-      <td>
-        chunk {{chunk.chunk}}
-      </td>
-      <td>
-        {{chunk.status | fileSize}} / {{chunk.blob.size | fileSize}}
-        <i class="fa fa-check text-success" *ngIf="chunk.done"></i>
-      </td>
-    </tr>
-    <tr *ngIf="chunks">
-      <td>
-        upload
-      </td>
-      <td *ngIf="!isUploaded">
-        running
-        <i class="fa fa-spinner fa-spin text-warning"></i>
-      </td>
-      <td *ngIf="isUploaded">
-        {{message}}
-        <i class="fa fa-check text-success" *ngIf="!isError"></i>
-        <i class="fa fa-times text-danger" *ngIf="isError"></i>
-      </td>
-    </tr> -->
   </tbody>
 </table>

@@ -6,7 +6,7 @@ import { Observable } from 'rxjs/Observable';
 import { filter, map, tap, take, toArray, merge, mergeMap, combineAll, concat, zip } from 'rxjs/operators';
 import 'rxjs/add/observable/merge';
 
-import { Chunk, Message, Progress } from '../../shared';
+import { Chunk, Message, Progress, Status } from '../../shared';
 import { FileUploadService } from '../services/file-upload.service';
 
 @Component({
@@ -63,9 +63,9 @@ export class FileUploadComponent implements OnInit {
   listenProgress(): void {
     this.progressList = [];
     this.fileUploadService.listenProgress().subscribe(progress => {
-      if (progress.status === 'uploaded') {
+      if (progress.status === Status.Ended) {
         this.progressList[progress.position].status = progress.status;
-      } else if (progress.status !== 'unknown') {
+      } else if (progress.status !== Status.Unknown) {
         this.progressList[progress.position] = progress;
       }
     });
@@ -73,15 +73,15 @@ export class FileUploadComponent implements OnInit {
 
   listenCompletion(): void {
     this.fileUploadService.listenCompletion().subscribe(completion => {
-      if (completion.status === 'started') {
+      if (completion.status === Status.Started) {
         this.completion = completion;
       }
-      if (completion.status === 'ended') {
+      if (completion.status === Status.Ended) {
         this.fileUploadService.validateUpload(completion, this.name).subscribe(message => {
           if (message.error) {
-            this.completion.status = 'failed';
+            this.completion.status = Status.Failed;
           } else {
-            this.completion.status = 'ended';
+            this.completion.status = Status.Ended;
           }
           console.log(message.message);
         });

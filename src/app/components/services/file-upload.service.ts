@@ -4,10 +4,10 @@ import { HttpClient, HttpRequest, HttpEvent, HttpErrorResponse, HttpEventType } 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
-import { map, tap, last, catchError } from 'rxjs/operators';
+import { map, tap, last, catchError, retry } from 'rxjs/operators';
 import 'rxjs/add/observable/of';
 
-import { Chunk, Message, Progress } from '../../shared';
+import { Chunk, Message, Progress, Status } from '../../shared';
 
 @Injectable()
 export class FileUploadService {
@@ -36,7 +36,7 @@ export class FileUploadService {
         this.completion.next({
           id: data['id'],
           position: null,
-          status: 'started'
+          status: Status.Started
         });
       }),
       map(data => data['id'])
@@ -78,8 +78,14 @@ export class FileUploadService {
     return this.http.request(req).pipe(
       map(event => this.getEventProgress(event, chunk)),
       tap(progress => this.sendProgress(progress)),
-      last(), // return last (completed) message to caller
-      catchError(this.handleError)
+      last(),
+      retry(3),
+      catchError((error: HttpErrorResponse) => {
+        return Observable.of({
+          error: true,
+          message: 'upload failed'
+        });
+      })
     );
   }
 
@@ -110,13 +116,13 @@ export class FileUploadService {
         return {
           id: chunk.id,
           position: chunk.position,
-          status: 'sent'
+          status: Status.Started
         };
       case HttpEventType.UploadProgress:
         return {
           id: chunk.id,
           position: chunk.position,
-          status: 'upload',
+          status: Status.Running,
           loaded: event.loaded,
           total: event.total
         };
@@ -124,51 +130,55 @@ export class FileUploadService {
         return {
           id: chunk.id,
           position: chunk.position,
-          status: 'uploaded',
+          status: Status.Ended,
         };
       default:
         return {
           id: chunk.id,
           position: chunk.position,
-          status: 'unknown',
+          status: Status.Unknown,
         };
     }
   }
 
+  /**
+   * sendProgress(progress: Progress): void
+   */
   sendProgress(progress: Progress) {
-    if (progress.status === 'uploaded') {
+    // Upload is done, set status to true
+    if (progress.status === Status.Ended) {
       this.status[progress.position] = true;
     }
+
+    // Send progress
+    this.progress.next(progress);
+
+    // Check if every upload is done
     if (this.status.reduce((acc, curr) => acc && curr)) {
       this.completion.next({
         id: progress.id,
         position: this.status.length,
-        status: 'ended'
+        status: Status.Ended
       });
     }
-    this.progress.next(progress);
   }
 
+
   /**
-   *
+   * listenProgress(): Observable<Progress>
+   * @return progress as Observable
    */
   listenProgress(): Observable<Progress> {
     return this.progress.asObservable();
   }
 
+
   /**
-   *
+   * listenCompletion(): Observable<Progress>
+   * @return completion as Observable
    */
   listenCompletion(): Observable<Progress> {
     return this.completion.asObservable();
-  }
-
-  /**
-   *
-   */
-  handleError() {
-    // handle
-    return new ErrorObservable('Something bad happened; please try again later.');
   }
 
 }
